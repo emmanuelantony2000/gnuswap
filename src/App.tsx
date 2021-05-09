@@ -1,10 +1,10 @@
-import React, { createContext, useState, useEffect, useContext, useMemo, ReactElement } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import styled from 'styled-components';
 
+import { ethers } from 'ethers';
 import Web3 from 'web3';
-import { Button } from '@gnosis.pm/safe-react-components';
-import SafeAppsSDK, { Opts as SDKOpts, SafeInfo } from '@gnosis.pm/safe-apps-sdk';
-import { Stepper } from '@gnosis.pm/safe-react-components';
+import { Button, Loader, Title, Card, Text, Select, Divider, TextField } from '@gnosis.pm/safe-react-components';
+import { useSafeAppsSDK, SafeProvider } from '@gnosis.pm/safe-apps-react-sdk';
 
 import { SafeAppProvider } from '@gnosis.pm/safe-apps-provider';
 import { ConnextModal } from '@connext/vector-modal';
@@ -16,29 +16,6 @@ declare global {
   }
 }
 
-const steps = [{ id: "1", label: "Loading" }, { id: "2", label: "Checking Metamask" }, { id: "3", label: "Done" }];
-
-type SafeReactSDKContext = {
-  sdk: SafeAppsSDK;
-  connected: boolean;
-  safe: SafeInfo;
-};
-
-const SafeContext = createContext<SafeReactSDKContext | undefined>(undefined);
-
-interface Props {
-  opts?: SDKOpts;
-}
-
-export const useSafeAppsSDK = (): SafeReactSDKContext => {
-  const value = useContext(SafeContext);
-
-  if (value === undefined) {
-    throw new Error('You probably forgot to put <SafeProvider>.');
-  }
-
-  return value;
-};
 
 const Container = styled.form`
   margin-bottom: 2rem;
@@ -50,41 +27,11 @@ const Container = styled.form`
   grid-column-gap: 1rem;
   grid-row-gap: 1rem;
 `;
-
-const App: React.FC<Props> = ({ opts }) => {
-  const [sdk] = useState(new SafeAppsSDK(opts));
-  const [connected, setConnected] = useState(false);
-  const [safe, setSafe] = useState<SafeInfo>({ safeAddress: '', network: 'RINKEBY' });
-  const contextValue = useMemo(() => ({ sdk: sdk, connected, safe: safe }), [sdk, connected, safe]);
-
-  useEffect(() => {
-    const fetchSafeInfo = async () => {
-      try {
-        const safeInfo = await sdk.getSafeInfo();
-
-        setSafe(safeInfo);
-        setConnected(true);
-      } catch (err) {
-        setConnected(false);
-      }
-    };
-
-    fetchSafeInfo();
-  }, [sdk]);
-
-  if (!connected) {
-    return <Stepper steps={steps} activeStepIndex={0} orientation="vertical" />;
-  }
-
-  return <App1 contextValue={contextValue} />
-}
-const App1: React.FC<{
-  contextValue: {
-    sdk: SafeAppsSDK;
-    connected: boolean;
-    safe: SafeInfo;
-  }
-}> = ({ contextValue }) => {
+export type SelectItem = {
+  id: string;
+  label: string;
+};
+const App: React.FC = () => {
   const { sdk, safe } = useSafeAppsSDK();
   const web3Provider = new SafeAppProvider(safe, sdk);
 
@@ -97,45 +44,75 @@ const App1: React.FC<{
     return false;
   }
   if (!ethEnabled()) {
-    return <SafeContext.Provider value={contextValue}><Stepper steps={steps} activeStepIndex={2} orientation="vertical" error /></SafeContext.Provider>;
+    alert("Please install MetaMask to use this dApp!");
   }
-
-  return <App2 web3Provider={web3Provider} contextValue={contextValue} />
-}
-
-const App2: React.FC<{
-  web3Provider: SafeAppProvider, contextValue: {
-    sdk: SafeAppsSDK;
-    connected: boolean;
-    safe: SafeInfo;
-  }
-}> = ({ web3Provider, contextValue }) => {
   const [showModal, setShowModal] = React.useState(false);
+  const items: Array<SelectItem> = [
+    { id: '1', label: 'RINKEBY -> KOVAN' },
+    { id: '2', label: 'GOERLI -> MUMBAI'},
+    { id: '2', label: 'KOVAN -> RINKEBY'},
+    { id: '3', label: 'ARBITRUM -> KOVAN' },
+  ];  
+  const [value, setValue] = useState<string>('');
+  const [activeItemId, setActiveItemId] = useState('');
 
-  return <SafeContext.Provider value={contextValue}>
-    <Stepper steps={steps} activeStepIndex={3} orientation="vertical" />
-    <Container>
-      <Button size="lg" color="primary" onClick={() => setShowModal(true)}>Open Connext</Button>
-      <ConnextModal
-        showModal={showModal}
-        onClose={() => setShowModal(false)}
-        onReady={params => console.log('MODAL IS READY =======>', params)}
-        injectedProvider={web3Provider}
-        loginProvider={window.ethereum}
-        withdrawalAddress={'0x182CB9579A57756EF8854A37EC1b75F911eb19BB'}
-        routerPublicIdentifier="vector7tbbTxQp8ppEQUgPsbGiTrVdapLdU5dH7zTbVuXRf1M4CEBU9Q"
-        depositAssetId={'0x0000000000000000000000000000000000000000'}
-        depositChainProvider="https://rinkeby.infura.io/v3/31a0f6f85580403986edab0be5f7673c"
-        depositChainId={4}
-        withdrawAssetId={'0x0000000000000000000000000000000000000000'}
-        withdrawChainProvider="https://kovan.infura.io/v3/31a0f6f85580403986edab0be5f7673c"
-        withdrawChainId={42}
-        onDepositTxCreated={(txHash) => { console.log('Deposit Tx Created =======>', txHash) }}
+  return (
+    <>
+      <Container>
+      <Card>
+    <Title size="sm">Connext Network Cross Chain Swap </Title>
+    <Select
+      items={items}
+      activeItemId={activeItemId}
+      onItemClick={(id) => {
+        setActiveItemId(id);
+      }}
+      
+    />
+    <p>
+      <TextField
+        id="standard-name"
+        label="Amount To Swap"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        input={{ type: 'number', min: 0.1, max: 10, step: 1 }}
       />
-      { }
-    </Container>
-  </SafeContext.Provider >
-    ;
+      </p>
+    <Divider />
+    <Button
+      size="lg"
+      iconType="resync"
+      color="primary"
+      variant="contained"
+      onClick={() => setShowModal(true)}
+      >
+      <Text size="xl" color="secondary">
+        SWAP
+      </Text>
+    </Button>
+  </Card>
+        {/* <Button size="lg" color="primary" onClick={() => setShowModal(true)}>Hello World</Button> */}
+        <ConnextModal
+          showModal={showModal}
+          onClose={() => setShowModal(false)}
+          onReady={params => console.log('MODAL IS READY =======>', params)}
+          injectedProvider={web3Provider}
+          loginProvider={window.ethereum}
+          withdrawalAddress={'0x7BF0C0259DA2db1Cc9A484945722221c5B800139'}
+          routerPublicIdentifier="vector7tbbTxQp8ppEQUgPsbGiTrVdapLdU5dH7zTbVuXRf1M4CEBU9Q"
+          depositAssetId={'0x0000000000000000000000000000000000000000'}
+          depositChainProvider="https://rinkeby.infura.io/v3/31a0f6f85580403986edab0be5f7673c"
+          depositChainId={4}
+          withdrawAssetId={'0x0000000000000000000000000000000000000000'} // likely use injected signer
+          withdrawChainProvider="https://kovan.infura.io/v3/31a0f6f85580403986edab0be5f7673c"
+          withdrawChainId={42}
+          onDepositTxCreated={(txHash) => { console.log('Deposit Tx Created =======>', txHash) }}
+        />
+        { }
+      </Container>
+    </>
+
+  );
 };
 
 export default App;
