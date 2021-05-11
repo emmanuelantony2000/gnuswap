@@ -1,51 +1,35 @@
-# My Safe App
+# GNUSwap
 
-## Getting Started
+![GNUSwap Logo](https://i.imgur.com/oaH610z.png)
 
-Install dependencies and start a local dev server.
+GNUSwap is an Gnosis Safe App to exchange token across multiple chains. Gnosis safe is a widely used application by companies, asset holders as it helps in managing asset owned by multiple stakeholders by levarages multisig capabilities of the gnosis safe. It helps transfer assets easily within the safe.
 
-```
-yarn install
-cp .env.sample .env
-yarn start
-```
-
-Then:
-
-- If HTTPS is used (by default enabled)
-  - Open your Safe app locally (by default via https://localhost:3000/) and accept the SSL error.
-- Go to Safe Multisig web interface
-  - [Mainnet](https://app.gnosis-safe.io)
-  - [Rinkeby](https://rinkeby.gnosis-safe.io/app)
-- Create your test safe
-- Go to Apps -> Manage Apps -> Add Custom App
-- Paste your localhost URL, default is https://localhost:3000/
-- You should see Safe App Starter as a new app
-- Develop your app from there
+![Screenshot](https://i.imgur.com/0FwiwPk.png)
 
 ## Features
 
-Gnosis Safe App Starter combines recommendations described in the following repositories:
+* Easy hassle free swapping of tokens cross chain
+* Directly integrated with gnosis safe
+* Uses Connext to do cross chain swapping
 
-- [Safe Apps SDK](https://github.com/gnosis/safe-apps-sdk)
-- [safe-react-components](https://github.com/gnosis/safe-react-components)
+## Why a Gnosis application
 
-You can use the `useSafe` React hook to interact with the Safe Apps SDK
+![Gnosis Safe Logo](https://i.imgur.com/AakfZs8.png)
 
-```
-const safe = useSafe();
-console.log(safe.info);
-```
+* We chose gnosis as it is widely used by many crypto projects to manage assets
+* Multi sig
+* It is has an application sdk which can be used to integrate with the wallet
+* The gnosis ecosystem is growing and has a lot of good dapps/defi protcols
+* It would be very convineant to transfer assets across chains owned by multiple parties
+* Infact it was even used for a covid relief campaign in India!
 
-Safe React Components are also integrated and ready to use. [See all components](https://components.gnosis-safe.io/).
+## How we Built it 
 
-## Dependencies
+We integrated Gnosis Safe using the gnosis safe sdk with connext network widget.
 
-### Included
-- [`@gnosis.pm/safe-react-components`](https://github.com/gnosis/safe-react-components) (UI components themed for the Safe Multisig interface)
-- [`@rmeissner/safe-apps-react-sdk`](https://github.com/rmeissner/safe-sdks-js/tree/master/safe-apps-react-sdk) (React hook for the Safe Apps SDK)
+## Future Scope
 
-### Recommended
-- [`ethers`](https://github.com/ethers-io/ethers.js) (Library for interacting with Ethereum)
-- [`web3`](https://github.com/ethereum/web3.js/) (Library for interacting with Ethereum)
-- [`@studydefi/money-legos`](https://github.com/studydefi/money-legos) (Library for DeFi interactions)
+* We intend to further enable gnuswap users to be able to add liquidity to the routers in return for gnuswap tokens all within the gnosis safe app.
+* This allows projects to utilize their tokens and generate returns all from the familiar safe interface.
+* Meta-transactions can be added so as to make the process, more seamless
+* Specific L2 bridges maybe used inorder to make the transfer more efficient
